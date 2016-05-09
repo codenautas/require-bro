@@ -1,11 +1,17 @@
+<!--multilang v0 es:LEEME.md en:README.md -->
 # require-bro
 require for browsers
 
+<!--lang:es-->
+# Instalación
+<!--lang:en--]
 # Install
+[!--lang:*-->
 ```sh
 $ npm install require-bro
 ```
 
+<!-- cucardas -->
 ![designing](https://img.shields.io/badge/stability-designing-red.svg)
 [![npm-version](https://img.shields.io/npm/v/require-bro.svg)](https://npmjs.org/package/require-bro)
 [![downloads](https://img.shields.io/npm/dm/require-bro.svg)](https://npmjs.org/package/require-bro)
@@ -16,12 +22,17 @@ $ npm install require-bro
 [![qa-control](http://codenautas.com/github/codenautas/require-bro.svg)](http://codenautas.com/github/codenautas/require-bro)
 
 
+<!--multilang buttons-->
 
-language: ![English](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)
-also available in:
-[![Spanish](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)](LEEME.md)
+idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
+también disponible en:
+[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](README.md)
 
+<!--lang:es-->
+## Licencia
+<!--lang:en--]
 ## License
+[!--lang:*-->
 
 [MIT](LICENSE)
 
