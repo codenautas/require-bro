@@ -6,7 +6,7 @@ require for browsers
 $ npm install require-bro
 ```
 
-![designing](https://img.shields.io/badge/stability-designing-red.svg)
+![extending](https://img.shields.io/badge/stability-extending-orange.svg)
 [![npm-version](https://img.shields.io/npm/v/require-bro.svg)](https://npmjs.org/package/require-bro)
 [![downloads](https://img.shields.io/npm/dm/require-bro.svg)](https://npmjs.org/package/require-bro)
 [![build](https://img.shields.io/travis/codenautas/require-bro/master.svg)](https://travis-ci.org/codenautas/require-bro)
@@ -61,11 +61,25 @@ console.log('dice', MoreMath.intRandom = function (1, 6));
 
 ## require([module-name])
 
+
 Searchs in the global object `window` a variable with the same name but in camelCase (or CamelCase)
 
 The required module must be included in previous `<scripts>`
 and must have define a global variable with the same name.
 
+
+## Tests with real devices
+
+(tested with [self-explain](https://www.npmjs.com/package/self-explain) )
+
+
+NPM version | Device                 | OS            | nav
+------------|------------------------|---------------|---------------
+0.10.0      | HTC Desire             | Android 2.2.2 | Android 2.2.2
+0.10.0      | Samgsung Galaxy Note 4 | Android 5.1.1 | Samsung Internet 4.0.0
+0.10.0      | Blue Vivo Air LTE      | Android 5.0.2 | Chrome Mobile 50.0.2661
+0.10.0      | iPad mini Retina       | iOS 8.4.0     | Mobile Safari 8.0.0
+0.10.0      | VMWare                 | WinXP         | IE 8.0.0
 
 ## License
 

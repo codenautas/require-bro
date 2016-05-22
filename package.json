@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "files": ["lib"],
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/require-bro",
@@ -12,7 +12,7 @@
       "email": "emilioplatzer@gmail.com"
     }
   ],
-  "main": "index.js",
+  "main": "lib/require-bro.js",
   "dependencies": {
   },
   "devDependencies": {
@@ -53,8 +53,8 @@
   "qa-control": {
     "package-version": "0.2.0",
     "coverage": 0,
-    "run-in": "mixed",
+    "run-in": "client",
     "stability": "extending",
-    "type": "special"
+    "type": "lib"
   }
 }
