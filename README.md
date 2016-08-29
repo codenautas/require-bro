@@ -46,7 +46,7 @@ MoreMath.intRandom = function (min, max){
 var MoreMath = require('more-math');
 
 console.log(MoreMath.real_roots_quadratic_equation(1,-2,1));
-console.log('dice', MoreMath.intRandom = function (1, 6));
+console.log('dice', MoreMath.intRandom(1, 6));
 
 ```
 
@@ -73,7 +73,7 @@ and must have define a global variable with the same name.
 (tested with [self-explain](https://www.npmjs.com/package/self-explain) )
 
 
-NPM version | Device                 | OS            | nav
+NPM version |Device                  |OS             |nav
 ------------|------------------------|---------------|---------------
 0.10.0      | HTC Desire             | Android 2.2.2 | Android 2.2.2
 0.10.0      | Samgsung Galaxy Note 4 | Android 5.1.1 | Samsung Internet 4.0.0

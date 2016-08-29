@@ -35,23 +35,8 @@
     "test-h": "node server/pdemo-server.js --use-casper --coverage --hold",
     "start": "node example/server.js"
   },
-  "jshintConfig": {
-    "asi": false,
-    "forin": true,
-    "curly": true
-  },
-  "eslintConfig": {
-    "env": {
-      "node": false
-    },
-    "rules": {
-      "strict": 0,
-      "no-console": 1,
-      "no-unused-vars": 1
-    }
-  },
   "qa-control": {
-    "package-version": "0.2.0",
+    "package-version": "0.3.0",
     "coverage": 0,
     "run-in": "client",
     "stability": "extending",
