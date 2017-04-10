@@ -76,7 +76,6 @@ var server = app.listen(PORT, function(){
     var args = process.argv;
     var phantomPath=process.env.TRAVIS && process.env.TRAVIS_NODE_VERSION<'4'?'phantomjs':'./node_modules/phantomjs-prebuilt/lib/phantom/'+(winOS?'bin/phantomjs.exe':'bin/phantomjs');
     var slimerPath=process.env.TRAVIS?'slimerjs':'./node_modules/slimerjs/lib/slimer/'+(winOS?'slimerjs.bat':'bin/slimerjs');
-    
     pidBrowser = spawn(
         (process.env.TRAVIS && false?'casperjs':'./node_modules/casperjs/bin/'+(winOS?'casperjs.exe':'casperjs')),
         ['test',
@@ -87,7 +86,7 @@ var server = app.listen(PORT, function(){
          //'--fail-fast',
          Path.resolve('./server/ctest.js')
         ],
-        { stdio: 'inherit' , env: changing(process.env,{PHANTOMJS_EXECUTABLE: phantomPath, SLIMERJS_EXECUTABLE:slimerPath})}
+        { stdio: 'inherit' , env: changing(process.env,{PHANTOMJS_EXECUTABLE: phantomPath, SLIMERJS_EXECUTABLE:slimerPath},changing.options({mostlyPlain:true}))}
     );
     pidBrowser.on('close', function (code, signal) {
         console.log('browser closed', code, signal);

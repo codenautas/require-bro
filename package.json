@@ -16,13 +16,13 @@
   "dependencies": {
   },
   "devDependencies": {
-    "casperjs": "~1.1.2",
-    "express": "~4.14.0",
+    "casperjs": "~1.1.3",
+    "express": "~4.15.2",
     "istanbul-middleware": "~0.2.2",
-    "lodash": "~4.13.1",
-    "phantomjs-prebuilt": "~2.1.7",
+    "lodash": "~4.17.4",
+    "phantomjs-prebuilt": "~2.1.14",
 
-    "best-globals": "~0.4.8",
+    "best-globals": "~0.8.1",
     "extension-serve-static": "~0.1.6"
   },
   "engines": {
