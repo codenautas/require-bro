@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "files": ["lib"],
   "author": "Codenautas <codenautas@googlegroups.com>",
   "repository": "codenautas/require-bro",
