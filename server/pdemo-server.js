@@ -5,7 +5,6 @@ var PORT = 43098;
 var Path = require('path');
 var winOS = Path.sep==='\\';
 
-var _ = require('lodash');
 var express = require('express');
 var app = express();
 
