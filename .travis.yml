@@ -7,4 +7,6 @@ matrix:
   allow_failures:
     - node_js: "6" 
 script: "npm run-script test"
+dist: trusty
+sudo: required
 after_script: "npm install coveralls@2.11.8 && cat ./coverage/lcov.info | coveralls"
