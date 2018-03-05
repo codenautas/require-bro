@@ -1,6 +1,35 @@
 "use strict";
 
-var Server = require('../test/server4test.js');
+var Server4Test = require('server4test');
+
+class Server extends Server4Test{
+    directServices(){
+        return super.directServices().concat([{
+            path:'/example',
+            html:`
+<!doctype html>
+<script src='lib/require-bro.js'></script>
+<script src='node_modules/like-ar/like-ar.js'></script>
+<script src='node_modules/best-globals/best-globals.js'></script>
+<script src='node_modules/js-to-html/js-to-html.js'></script>
+<script src='node_modules/big.js/big.js'></script>
+<script src='node_modules/json4all/json4all.js'></script>
+<script src='node_modules/type-store/type-store.js'></script>
+<h1>example</h1>
+<button id=calculate>calculate</button>
+<div id=layout></div>
+<script>
+window.addEventListener('load',function(){
+calculate.onclick=function(){
+    layout.textContent=TypeStore.i18n.messages.en.boolean.true;
+    layout.id='result';
+}
+});
+</script>
+</html>    
+        `}])
+    }
+}
 
 const puppeteer = require('puppeteer');
 
@@ -19,7 +48,7 @@ describe("interactive ",function(){
     var server;
     before(async function(){
         this.timeout(50000);
-        server = new Server();
+        server = new Server({port:39929});
         console.log("starting server");
         await server.start();
         browser = await puppeteer.launch(process.env.TRAVIS?null:{headless: process.env.TRAVIS || !config.test["view-chrome"], slowMo: 50});
