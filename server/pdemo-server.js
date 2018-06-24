@@ -14,8 +14,6 @@ if(coverageON) {
     var urlParse = require('url').parse;
     var im = require('istanbul-middleware');
 }
-
-var extensionServeStatic = require('extension-serve-static');
         
 var changing = require('best-globals').changing;
 
@@ -57,13 +55,13 @@ app.get('/demo', function(req,res){
     );
 });
 
-app.use('/lib2',extensionServeStatic('./node_modules/best-globals', {staticExtensions: ['js']}));
-app.use('/lib',extensionServeStatic('./lib', {staticExtensions: ['js']}));
+app.use('/lib2',serveContent('./node_modules/best-globals', {allowedExts: ['js']}));
+app.use('/lib',serveContent('./lib', {allowedExts: ['js']}));
 
-app.use('/',extensionServeStatic('./server', {
+app.use('/',serveContent('./server', {
     extensions: ['html', 'htm'], 
     index: 'index.html', 
-    staticExtensions: ['', 'html', 'htm', 'png', 'jpg', 'jpeg', 'gif', 'js', 'css']
+    allowedExts: ['', 'html', 'htm', 'png', 'jpg', 'jpeg', 'gif', 'js', 'css']
 })); 
 
 var pidBrowser;

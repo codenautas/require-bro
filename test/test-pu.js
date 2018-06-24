@@ -11,7 +11,7 @@ class Server extends Server4Test{
 <script src='lib/require-bro.js'></script>
 <script src='node_modules/like-ar/like-ar.js'></script>
 <script src='node_modules/best-globals/best-globals.js'></script>
-<script src='node_modules/js-to-html/js-to-html.js'></script>
+<script src='node_modules/js-to-html/lib/js-to-html.js'></script>
 <script src='node_modules/big.js/big.js'></script>
 <script src='node_modules/json4all/json4all.js'></script>
 <script src='node_modules/type-store/type-store.js'></script>
@@ -62,6 +62,7 @@ describe("interactive ",function(){
     });
     it("calculate", async function(){
         this.timeout(2000);
+        await page.waitForSelector('#calculate');
         await page.click('#calculate');
         await page.waitForSelector('#result');
         var obtained = await page.$eval('#result', div => div.textContent);
