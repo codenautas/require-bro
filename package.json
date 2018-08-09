@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "files": [
     "lib"
   ],
@@ -20,12 +20,12 @@
     "express": "~4.16.3",
     "istanbul": "~0.4.5",
     "mocha": "~5.2.0",
-    "puppeteer": "~1.5.0",
-    "best-globals": "~0.10.4",
-    "discrepances": "~0.2.2",
+    "puppeteer": "~1.6.2",
+    "best-globals": "~0.10.5",
+    "discrepances": "~0.2.3",
     "serve-content": "~0.3.9",
     "server4test": "~0.1.1",
-    "type-store": "~0.2.24"
+    "type-store": "~0.2.25"
   },
   "engines": {
     "node": ">= 8"
