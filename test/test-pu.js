@@ -51,7 +51,7 @@ describe("interactive ",function(){
         server = new Server({port:39929});
         console.log("starting server");
         await server.start();
-        browser = await puppeteer.launch(process.env.TRAVIS?null:{headless: process.env.TRAVIS || !config.test["view-chrome"], slowMo: 50});
+        browser = await puppeteer.launch(process.env.TRAVIS||true?{}:{headless: process.env.TRAVIS || !config.test["view-chrome"], slowMo: 50});
         page = await browser.newPage();
         page.on('console', msg => { 
             console.log('console.'+msg.type(), msg.text()) 
@@ -61,7 +61,7 @@ describe("interactive ",function(){
         console.log('system ready');
     });
     it("calculate", async function(){
-        this.timeout(2000);
+        this.timeout(5000);
         await page.waitForSelector('#calculate');
         await page.click('#calculate');
         await page.waitForSelector('#result');
@@ -70,6 +70,7 @@ describe("interactive ",function(){
         return 1;
     });
     after(async function(){
+        this.timeout(4500);
         await page.waitFor(process.env.TRAVIS?10:1000);
         await browser.close()
         await server.closeServer();
