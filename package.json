@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "files": [
     "lib"
   ],
@@ -17,15 +17,15 @@
   "main": "lib/require-bro.js",
   "dependencies": {},
   "devDependencies": {
-    "express": "~4.16.4",
+    "express": "~4.17.1",
     "istanbul": "~0.4.5",
-    "mocha": "~5.2.0",
-    "puppeteer": "~1.9.0",
-    "best-globals": "~0.10.5",
-    "discrepances": "~0.2.3",
-    "serve-content": "~0.3.10",
-    "server4test": "~0.1.1",
-    "type-store": "~0.2.27"
+    "mocha": "~7.2.0",
+    "puppeteer": "~3.2.0",
+    "best-globals": "~0.10.24",
+    "discrepances": "~0.2.4",
+    "serve-content": "~0.3.12",
+    "server4test": "~0.5.3",
+    "type-store": "~0.2.36"
   },
   "engines": {
     "node": ">= 8"

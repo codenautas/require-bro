@@ -1,6 +1,8 @@
 "use strict";
 
-var Server4Test = require('server4test');
+var {Server4Test} = require('server4test');
+
+console.log('Server4Test', Server4Test)
 
 class Server extends Server4Test{
     directServices(){
@@ -48,7 +50,7 @@ describe("interactive ",function(){
     var server;
     before(async function(){
         this.timeout(50000);
-        server = new Server({port:39929});
+        server = new Server({port:39929, "local-file-repo":{enabled:false, directory:null}});
         console.log("starting server");
         await server.start();
         browser = await puppeteer.launch(process.env.TRAVIS||true?{}:{headless: process.env.TRAVIS || !config.test["view-chrome"], slowMo: 50});
