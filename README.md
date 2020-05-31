@@ -19,7 +19,7 @@ also available in:
 
 ## Electron
 
-For electron compatibility use AMD modules instead of UMD.
+Compatibility with Electron is experimental from both AMD and UMD modules.
 
 ## Use
 
