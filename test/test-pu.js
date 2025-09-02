@@ -74,7 +74,7 @@ describe("interactive ",function(){
     after(async function () {
         this.timeout(4500);
         //await page.waitFor(process.env.TRAVIS?10:1000);
-        // reemplazo page.waitFor(...) ya no existe por:
+        //reemplazo page.waitFor(...) ya no existe por:
         await new Promise(r => setTimeout(r, 200));
         await browser.close();
         await server.closeServer();

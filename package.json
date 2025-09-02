@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "files": [
     "lib"
   ],
@@ -34,7 +34,6 @@
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test": "mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "testgroupby": "set GROUPBY_TESTS=1&& mocha --require ./setupTestGroupBy.js --reporter spec --check-leaks test/test-groupBy.js",
     "test-h": "node server/pdemo-server.js --use-casper --coverage --hold",
     "start": "node server/pdemo-server.js"
   },
