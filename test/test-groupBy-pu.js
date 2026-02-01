@@ -3,6 +3,12 @@
 const { Server4Test } = require("server4test");
 const puppeteer = require("puppeteer");
 
+const config = {
+    test:{
+        "view-chrome": true
+    }
+};
+
 const headless = !!process.env.GITHUB_ACTIONS && !!process.env.TRAVIS || !config.test["view-chrome"]
 const slowMo = headless ? 1 : 50;
 
