@@ -3,6 +3,9 @@
 const { Server4Test } = require("server4test");
 const puppeteer = require("puppeteer");
 
+const headless = !!process.env.GITHUB_ACTIONS && !!process.env.TRAVIS || !config.test["view-chrome"]
+const slowMo = headless ? 1 : 50;
+
 class Server extends Server4Test {
   directServices() {
     return super.directServices().concat([
@@ -46,8 +49,6 @@ describe("Polyfill Object.groupBy (desde lib/polyfills-bro.js)", function () {
     });
     await server.start();
 
-    const headless =
-      process.env.HEADLESS === "false" ? false : "new";
     browser = await puppeteer.launch({ headless });
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
