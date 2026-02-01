@@ -11,7 +11,9 @@ const config = {
 
 const headless = !!process.env.GITHUB_ACTIONS && !!process.env.TRAVIS || !config.test["view-chrome"]
 const slowMo = headless ? 1 : 50;
-
+const args = process.env.GITHUB_ACTIONS
+  ? ['--no-sandbox', '--disable-setuid-sandbox']
+  : [];
 class Server extends Server4Test {
   directServices() {
     return super.directServices().concat([
@@ -55,7 +57,7 @@ describe("Polyfill Object.groupBy (desde lib/polyfills-bro.js)", function () {
     });
     await server.start();
 
-    browser = await puppeteer.launch({ headless });
+    browser = await puppeteer.launch({ headless, slowMo, args });
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
     await page.goto(`http://localhost:${server.port}/groupby`);
