@@ -17,15 +17,15 @@
   "main": "lib/require-bro.js",
   "dependencies": {},
   "devDependencies": {
-    "express": "~4.18.2",
+    "express": "~5.2.1",
     "istanbul": "~0.4.5",
-    "mocha": "~10.2.0",
-    "puppeteer": "~19.11.1",
-    "best-globals": "~1.1.0",
-    "discrepances": "~0.2.8",
-    "serve-content": "~0.3.18",
-    "server4test": "~0.8.7",
-    "type-store": "~0.3.1"
+    "mocha": "~11.7.5",
+    "puppeteer": "~24.36.1",
+    "best-globals": "~2.0.7",
+    "discrepances": "~0.2.9",
+    "serve-content": "~1.0.2",
+    "server4test": "~1.0.0",
+    "type-store": "~0.4.5"
   },
   "engines": {
     "node": ">= 14"
