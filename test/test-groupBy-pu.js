@@ -9,7 +9,7 @@ const config = {
     }
 };
 
-const headless = !!process.env.GITHUB_ACTIONS && !!process.env.TRAVIS || !config.test["view-chrome"]
+const headless = !!process.env.GITHUB_ACTIONS || !!process.env.TRAVIS || !config.test["view-chrome"]
 const slowMo = headless ? 1 : 50;
 const args = process.env.GITHUB_ACTIONS
   ? ['--no-sandbox', '--disable-setuid-sandbox']
