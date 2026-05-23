@@ -140,30 +140,82 @@ Mismo specifier en las dos etapas. Solo cambia la sintaxis del import al migrar 
 
 ```javascript
 // when-all-ready (paquete propio, autosuficiente)
-var readyHandlers = [];
+
+export interface WhenAllReadyError {
+  error: Error;
+  moduleName: string;
+  moduleNameWasDeduced: boolean;
+}
+
+var queue = Promise.resolve();
 var isReady = false;
+var pendingHandlers = []; // [{fn, moduleName, moduleNameWasDeduced}]
+
+export var errors: WhenAllReadyError[] = [];
+
+function enqueue(fn, moduleName, moduleNameWasDeduced) {
+  queue = queue.then(async () => {
+    try {
+      await fn();
+    } catch (error) {
+      errors.push({ error, moduleName, moduleNameWasDeduced });
+    }
+  });
+}
 
 if (document.readyState === 'complete') {
   isReady = true;
 } else {
   window.addEventListener('load', function() {
     isReady = true;
-    var handlers = readyHandlers;
-    readyHandlers = [];
-    handlers.forEach(h => h());
+    for (var h of pendingHandlers) {
+      enqueue(h.fn, h.moduleName, h.moduleNameWasDeduced);
+    }
+    pendingHandlers = [];
   });
 }
 
-export function whenAllReady(fn) {
+export function whenAllReady(fn, moduleName) {
+  var moduleNameWasDeduced = moduleName === undefined;
+  var resolvedName = moduleName !== undefined ? moduleName : (fn.name || '');
   if (isReady) {
-    Promise.resolve().then(fn); // microtask, no sincrónico
+    enqueue(fn, resolvedName, moduleNameWasDeduced);
   } else {
-    readyHandlers.push(fn);
+    pendingHandlers.push({ fn, moduleName: resolvedName, moduleNameWasDeduced });
   }
 }
 ```
 
-Una sola función pública. `when-all-ready` se ocupa por sí solo del evento `load`: encola los handlers que llegan antes y los ejecuta cuando el evento se dispara; los que llegan después se ejecutan en microtask inmediato.
+**Semántica:**
+
+- **Ejecución serial estricta.** Los handlers corren uno después del otro. Si un handler devuelve una promesa, los siguientes esperan a que se resuelva (o rechace) antes de arrancar. La cola es permanente: handlers registrados tarde (después de `load`) también se encolan, no se ejecutan en paralelo con los que están corriendo.
+- **Aislamiento de errores.** Si un handler tira excepción o rechaza la promesa, los siguientes se ejecutan igual. El error no rompe la cadena.
+- **Errores acumulados y expuestos.** La lista `errors` exportada contiene todos los errores ocurridos, cada uno con la referencia al `Error` original, el `moduleName` que se le asoció, y un flag `moduleNameWasDeduced` que indica si ese nombre fue pasado explícitamente por el caller o deducido de `fn.name`. El código de aplicación puede revisar esta lista al final del bootstrap y decidir qué hacer (romper todo, avisar al usuario, loguear, etc.).
+- **Si un handler quiere paralelizar parte de su trabajo**, que dispare la promesa internamente sin awaitearla. El default es serial.
+
+**API:**
+
+```javascript
+whenAllReady(fn);                      // moduleName se deduce de fn.name
+whenAllReady(fn, 'mi-modulo');         // moduleName explícito
+```
+
+**Lectura de errores desde el código de aplicación:**
+
+```javascript
+import { whenAllReady, errors } from 'when-all-ready';
+
+whenAllReady(function mainInit() {
+  if (errors.length > 0) {
+    // decidir qué hacer: romper, avisar, loguear, etc.
+    console.error('Errores durante la carga:', errors);
+    showUserNotification('Hubo errores en la carga. Algunas funciones podrían no funcionar como se espera, por favor avise a soporte.');
+  }
+  // resto de la inicialización principal
+}, 'main');
+```
+
+Como `mainInit` se encola al final y la cola es serial, cuando se ejecuta ya pasaron todos los handlers anteriores y `errors` refleja el estado completo.
 
 ### Compatibilidad durante la transición
 
