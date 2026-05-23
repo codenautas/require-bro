@@ -147,9 +147,14 @@ export interface WhenAllReadyError {
   moduleNameWasDeduced: boolean;
 }
 
-var queue = Promise.resolve();
-var isReady = false;
-var pendingHandlers = []; // [{fn, moduleName, moduleNameWasDeduced}]
+// La cola arranca bloqueada esperando 'load' (o ya resuelta si el evento pasó)
+var queue = new Promise<void>(resolve => {
+  if (document.readyState === 'complete') {
+    resolve();
+  } else {
+    window.addEventListener('load', () => resolve());
+  }
+});
 
 export var errors: WhenAllReadyError[] = [];
 
@@ -163,32 +168,16 @@ function enqueue(fn, moduleName, moduleNameWasDeduced) {
   });
 }
 
-if (document.readyState === 'complete') {
-  isReady = true;
-} else {
-  window.addEventListener('load', function() {
-    isReady = true;
-    for (var h of pendingHandlers) {
-      enqueue(h.fn, h.moduleName, h.moduleNameWasDeduced);
-    }
-    pendingHandlers = [];
-  });
-}
-
 export function whenAllReady(fn, moduleName) {
   var moduleNameWasDeduced = moduleName === undefined;
   var resolvedName = moduleName !== undefined ? moduleName : (fn.name || '');
-  if (isReady) {
-    enqueue(fn, resolvedName, moduleNameWasDeduced);
-  } else {
-    pendingHandlers.push({ fn, moduleName: resolvedName, moduleNameWasDeduced });
-  }
+  enqueue(fn, resolvedName, moduleNameWasDeduced);
 }
 ```
 
 **Semántica:**
 
-- **Ejecución serial estricta.** Los handlers corren uno después del otro. Si un handler devuelve una promesa, los siguientes esperan a que se resuelva (o rechace) antes de arrancar. La cola es permanente: handlers registrados tarde (después de `load`) también se encolan, no se ejecutan en paralelo con los que están corriendo.
+- **Ejecución serial estricta.** Todos los handlers van a la misma cola permanente. Si un handler devuelve una promesa, los siguientes esperan a que se resuelva (o rechace) antes de arrancar. Da igual si se registraron antes o después del evento `load`: el orden de encolado es el orden de ejecución.
 - **Aislamiento de errores.** Si un handler tira excepción o rechaza la promesa, los siguientes se ejecutan igual. El error no rompe la cadena.
 - **Errores acumulados y expuestos.** La lista `errors` exportada contiene todos los errores ocurridos, cada uno con la referencia al `Error` original, el `moduleName` que se le asoció, y un flag `moduleNameWasDeduced` que indica si ese nombre fue pasado explícitamente por el caller o deducido de `fn.name`. El código de aplicación puede revisar esta lista al final del bootstrap y decidir qué hacer (romper todo, avisar al usuario, loguear, etc.).
 - **Si un handler quiere paralelizar parte de su trabajo**, que dispare la promesa internamente sin awaitearla. El default es serial.
