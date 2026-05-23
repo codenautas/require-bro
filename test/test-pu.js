@@ -1,6 +1,6 @@
 "use strict";
 
-var {serverDemo} = require('../server/pdemo-server.js');
+var {serverDemo} = require('../server/pdemo-server.mjs');
 
 const puppeteer = require('puppeteer');
 
@@ -26,6 +26,7 @@ describe("interactive ",function(){
     before(async function(){
         this.timeout(50000);
         server = serverDemo;
+        await server.start();
         browser = await puppeteer.launch({headless, slowMo, args});
         page = await browser.newPage();
         page.on('console', msg => { 

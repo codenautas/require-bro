@@ -35,7 +35,7 @@
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test": "mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-h": "node server/pdemo-server.js --use-casper --coverage --hold",
-    "start": "node server/pdemo-server.js"
+    "start": "node server/pdemo-server.mjs"
   },
   "qa-control": {
     "package-version": "0.3.0",
