@@ -139,9 +139,20 @@ Mismo specifier en las dos etapas. Solo cambia la sintaxis del import al migrar 
 ### Implementación de `whenAllReady`
 
 ```javascript
-// when-all-ready (paquete propio)
+// when-all-ready (paquete propio, autosuficiente)
 var readyHandlers = [];
 var isReady = false;
+
+if (document.readyState === 'complete') {
+  isReady = true;
+} else {
+  window.addEventListener('load', function() {
+    isReady = true;
+    var handlers = readyHandlers;
+    readyHandlers = [];
+    handlers.forEach(h => h());
+  });
+}
 
 export function whenAllReady(fn) {
   if (isReady) {
@@ -150,51 +161,19 @@ export function whenAllReady(fn) {
     readyHandlers.push(fn);
   }
 }
-
-export function _markAllReady() {
-  isReady = true;
-  var handlers = readyHandlers;
-  readyHandlers = [];
-  handlers.forEach(h => h());
-}
 ```
 
-`require-bro@3` importa `_markAllReady` de `when-all-ready` y lo llama al final de `bootstrap()`. Cuando `require-bro` se jubile, otro orquestador (o el propio código de la app en ESM puro) será quien llame a `_markAllReady()` cuando corresponda.
+Una sola función pública. `when-all-ready` se ocupa por sí solo del evento `load`: encola los handlers que llegan antes y los ejecuta cuando el evento se dispara; los que llegan después se ejecutan en microtask inmediato.
 
 ### Compatibilidad durante la transición
 
-`when-all-ready@1.x` se publica antes del piloto y queda disponible para que cualquier sistema cliente lo use ya mismo, **sin esperar a `require-bro@3`**. Su implementación inicial usa `load` como fallback:
+`when-all-ready@1.x` se publica antes del piloto y queda disponible para que cualquier sistema cliente lo use ya mismo. Su implementación es la misma desde el día uno (la mostrada arriba) — no necesita cambiar cuando llegue `require-bro@3`, porque `whenAllReady` ya se basa en el evento `load` natural del browser, que es exactamente lo que los handlers de aplicación están esperando.
 
-```javascript
-// when-all-ready v1.x (etapa de transición, antes de require-bro@3)
-var readyHandlers = [];
-var isReady = false;
-
-export function whenAllReady(fn) {
-  if (isReady) {
-    Promise.resolve().then(fn);
-  } else if (document.readyState === 'complete') {
-    isReady = true;
-    Promise.resolve().then(fn);
-  } else {
-    if (readyHandlers.length === 0) {
-      window.addEventListener('load', function() {
-        isReady = true;
-        var handlers = readyHandlers;
-        readyHandlers = [];
-        handlers.forEach(h => h());
-      });
-    }
-    readyHandlers.push(fn);
-  }
-}
-```
-
-Esto permite que los sistemas cliente migren sus handlers de `load` a `whenAllReady` progresivamente, **una regla por PR**: si tocás un handler de `load`, cambialo a `whenAllReady`. Cuando llegue `require-bro@3`, `when-all-ready` se actualiza para exponer `_markAllReady` y dejar de depender de `load`. El código de aplicación no se entera.
+Esto permite que los sistemas cliente migren sus handlers de `load` a `whenAllReady` progresivamente, **una regla por PR**: si tocás un handler de `load`, cambialo a `whenAllReady`.
 
 ### Después de `require-bro@3`: jubilación
 
-Cuando `backend-plus@2.x` (la línea anterior) deje de mantenerse, `require-bro` se jubila. **El código de aplicación no necesita ningún cambio**: siempre importó `whenAllReady` desde `when-all-ready` directamente. `when-all-ready` queda como paquete independiente que sobrevive a `require-bro`, y su implementación se reorganiza para que `_markAllReady` lo dispare algún otro orquestador del ecosistema ESM puro.
+Cuando `backend-plus@2.x` (la línea anterior) deje de mantenerse, `require-bro` se jubila. **El código de aplicación no necesita ningún cambio**: siempre importó `whenAllReady` desde `when-all-ready` directamente. `when-all-ready` queda como paquete independiente que sobrevive a `require-bro` sin modificaciones.
 
 ## Orden de migración
 
