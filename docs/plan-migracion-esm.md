@@ -11,7 +11,7 @@ Modernización del ecosistema Node.js/TypeScript propio:
 ## Principios rectores
 
 1. **Migración incremental que entregue valor en cada paso.** No "todo o nada". Cada librería migrada se publica, se valida en producción real, y recién después se toca la siguiente.
-2. **Versionado mayor marca la frontera.** Las librerías 2.x/3.x ESM-only conviven con sus líneas anteriores UMD. Los sistemas cliente migran a su ritmo.
+2. **Versionado mayor marca la frontera. Todas las librerías saltan a 3.x ESM-only**, sin importar desde qué versión vienen (algunas desde 0.x, otras desde 1.x, otras desde 2.x). Esto da un número único y claro de "la línea moderna ESM" en todo el ecosistema. Las líneas anteriores se mantienen en mantenimiento. Los sistemas cliente migran a su ritmo.
 3. **Tests como red de seguridad.** Empezar por lo que tiene cobertura alta; donde la cobertura sea baja, agregarla *antes* de migrar.
 4. **Preservar la filosofía del frontend:** sin bundler, módulos servidos como archivos, control explícito del grafo. Se reemplaza `require-bro` por ESM nativo del browser + import maps, pero solo cuando llegue el momento — durante la transición `require-bro` se vuelve la pieza estratégica que orquesta la coexistencia.
 5. **Forward compatibility en el código de aplicación.** Cuando se introduce una nueva API, debe poder usarse desde el código UMD/CJS actual y seguir funcionando idéntica en ESM puro, sin retrabajo.
@@ -20,9 +20,9 @@ Modernización del ecosistema Node.js/TypeScript propio:
 
 ### Sobre las versiones
 
-- Las librerías propias migran como **versión mayor ESM-only** (la línea anterior UMD queda en mantenimiento para fixes).
+- Las librerías propias migran a **versión 3.x ESM-only**, sin importar desde qué versión vienen. Esto unifica la nomenclatura: "todo lo 3.x es ESM moderno". Las líneas anteriores (0.x, 1.x, 2.x según corresponda) quedan en mantenimiento.
 - `backend-plus` arranca como `3.0.0-rc.1` y se mantiene en rama paralela hasta estabilizar.
-- **`require-bro` también migra** (contradice una decisión anterior): se publica `require-bro@2` como pieza de transición. Eventualmente se jubila cuando `backend-plus@1.x` deje de mantenerse.
+- **`require-bro` también migra a 3.x**: se publica `require-bro@3` como pieza de transición. Eventualmente se jubila cuando `backend-plus@2.x` (la línea anterior) deje de mantenerse.
 
 ### Sobre el formato de exports
 
@@ -61,7 +61,7 @@ Modernización del ecosistema Node.js/TypeScript propio:
 
 Node 22 estabilizó `require(esm)`. Eso significa:
 
-- Un sistema basado en `backend-plus@1.x` (CJS) **puede consumir** una librería 3.x (ESM puro) en su código de backend, vía `require('lib')`, **sincrónicamente y sin cambios**.
+- Un sistema basado en `backend-plus@2.x` (CJS) **puede consumir** una librería 3.x (ESM puro) en su código de backend, vía `require('lib')`, **sincrónicamente y sin cambios**.
 - Limitación: el módulo ESM **no puede tener top-level await** (ni transitivamente). Para librerías utilitarias puras esto no es restricción.
 - **Las librerías 3.x se pueden ir publicando independientemente, sin esperar a `backend-plus@3`.**
 
@@ -80,13 +80,13 @@ No hay equivalente a `require(esm)` en el browser. La estrategia tiene dos etapa
 
 Funciona porque `require-bro` ya tiene un registro `definedModules` que se puede poblar manualmente. El código legacy hace `require('best-globals')` y lo encuentra ahí. Sirve para validar el flujo ESM-en-browser-vía-`require-bro` sin tocar `require-bro`.
 
-**Etapa 2 (`require-bro@2`, cuando haya 2-3 librerías migradas):** `require-bro` se actualiza para orquestar la carga mixta UMD+ESM en una fase de bootstrap previa al resto del frontend. Ver sección siguiente.
+**Etapa 2 (`require-bro@3`, cuando haya 2-3 librerías migradas):** `require-bro` se actualiza para orquestar la carga mixta UMD+ESM en una fase de bootstrap previa al resto del frontend. Ver sección siguiente.
 
-## `require-bro@2`: diseño
+## `require-bro@3`: diseño
 
 ### Modelo
 
-`require-bro@2` mantiene la API actual (`define()`, `require()`, `definedModules`) y agrega una **fase de bootstrap asincrónica** que precarga ESM antes de que se ejecute cualquier código UMD legacy.
+`require-bro@3` mantiene la API actual (`define()`, `require()`, `definedModules`) y agrega una **fase de bootstrap asincrónica** que precarga ESM antes de que se ejecute cualquier código UMD legacy.
 
 ```html
 <script src='require-bro.js'></script>
@@ -112,23 +112,27 @@ Funciona porque `require-bro` ya tiene un registro `definedModules` que se puede
 
 ### El problema del evento `load` y `whenAllReady`
 
-**Problema:** los handlers de aplicación hoy se registran con `window.addEventListener('load', ...)`. No son idempotentes. El bootstrap asincrónico de `require-bro@2` hace que `load` se dispare antes de que termine la carga real — y un handler registrado dinámicamente después de `load` nunca se ejecuta (el DOM no provee "ejecutar este handler aunque load ya pasó").
+**Problema:** los handlers de aplicación hoy se registran con `window.addEventListener('load', ...)`. No son idempotentes. El bootstrap asincrónico de `require-bro@3` hace que `load` se dispare antes de que termine la carga real — y un handler registrado dinámicamente después de `load` nunca se ejecuta (el DOM no provee "ejecutar este handler aunque load ya pasó").
 
 **Insight de fondo:** este patrón (`addEventListener('load', initFn)` para "todo está listo") **no tiene sentido en ESM puro tampoco**. ESM resuelve el orden vía el grafo de imports y top-level code; `load` solo aplica a recursos (imágenes, iframes), no a "mi JS terminó de inicializarse". Por lo tanto, **migrar a otro mecanismo no es deuda de la transición, es alineación con el modelo destino**.
 
-**Solución: `whenAllReady`, expuesto desde `require-bro`.**
+**Solución: `whenAllReady`, con paquete propio `when-all-ready`** (nombre ya registrado en npm). Durante la transición se re-exporta desde `require-bro@3`. Cuando `require-bro` se jubile, el paquete `when-all-ready` queda como ubicación canónica de la función — el código de aplicación que ya importa de ahí no necesita cambios.
 
 ```javascript
 // En código de aplicación, hoy (UMD/CJS):
 var {whenAllReady} = require('require-bro');
 whenAllReady(myInitFunc);
 
-// Mañana (ESM):
+// Mañana (ESM, todavía con require-bro):
 import {whenAllReady} from 'require-bro';
+whenAllReady(myInitFunc);
+
+// Post-jubilación de require-bro:
+import {whenAllReady} from 'when-all-ready';
 whenAllReady(myInitFunc);
 ```
 
-Mismo código de aplicación, solo cambia la sintaxis del import.
+Mismo código de aplicación, solo cambia la sintaxis del import y eventualmente el specifier.
 
 ### Por qué el nombre `whenAllReady` y no `whenReady` u `onReady`
 
@@ -138,12 +142,14 @@ Mismo código de aplicación, solo cambia la sintaxis del import.
 
 ### Implementación de `whenAllReady`
 
+La implementación canónica vive en el paquete `when-all-ready`. `require-bro@3` la re-exporta para conveniencia de los consumers que ya importan de `require-bro`:
+
 ```javascript
-// require-bro@2
+// when-all-ready (paquete propio)
 var readyHandlers = [];
 var isReady = false;
 
-function whenAllReady(fn) {
+export function whenAllReady(fn) {
   if (isReady) {
     Promise.resolve().then(fn); // microtask, no sincrónico
   } else {
@@ -151,9 +157,7 @@ function whenAllReady(fn) {
   }
 }
 
-// Al final de bootstrap():
-async function bootstrap({modules}) {
-  // ... cargar todo ...
+export function _markAllReady() {
   isReady = true;
   var handlers = readyHandlers;
   readyHandlers = [];
@@ -161,32 +165,40 @@ async function bootstrap({modules}) {
 }
 ```
 
-### Compatibilidad con `require-bro@1.x`
+`require-bro@3` llama a `_markAllReady()` al final de `bootstrap()`. Cuando `require-bro` se jubile, otro orquestador (o el propio código de la app en ESM puro) llamará a `_markAllReady()` cuando corresponda.
 
-Para que el código de aplicación pueda **empezar a usar `whenAllReady` antes de que salga `require-bro@2`**, se publica un patch `require-bro@1.x+1` con la API agregada, implementada sobre `load`:
+### Compatibilidad con `require-bro@2.x`
+
+Para que el código de aplicación pueda **empezar a usar `whenAllReady` antes de que salga `require-bro@3`**, se publica un patch `require-bro@2.x+1` que re-exporta `whenAllReady` desde el paquete `when-all-ready`. La implementación de `when-all-ready` en esta etapa puede usar `load` internamente como fallback:
 
 ```javascript
-// require-bro@1.x+1
-window.requireBro.whenAllReady = function(fn) {
+// when-all-ready v1.x (etapa de transición)
+export function whenAllReady(fn) {
   if (document.readyState === 'complete') {
     Promise.resolve().then(fn);
   } else {
     window.addEventListener('load', fn);
   }
-};
+}
 ```
 
-Esto permite que los sistemas cliente migren sus handlers de `load` a `whenAllReady` progresivamente, **una regla por PR**: si tocás un handler de `load`, cambialo a `whenAllReady`. Cuando llegue `require-bro@2`, la implementación interna cambia y el código de aplicación no se entera.
+```javascript
+// require-bro@2.x+1 re-exporta
+window.requireBro.whenAllReady = require('when-all-ready').whenAllReady;
+```
 
-### Después de `require-bro@2`: jubilación
+Esto permite que los sistemas cliente migren sus handlers de `load` a `whenAllReady` progresivamente, **una regla por PR**: si tocás un handler de `load`, cambialo a `whenAllReady`. Cuando llegue `require-bro@3`, la implementación de `when-all-ready` se actualiza para usar el bootstrap (sin depender de `load`) y el código de aplicación no se entera.
 
-Cuando `backend-plus@1.x` deje de mantenerse, `require-bro` se jubila. Para que el código de aplicación que usa `whenAllReady` no se rompa, la función se re-exporta desde una librería utilitaria (a definir), **con el mismo nombre y la misma semántica**. El cambio para el consumer es solo el specifier del import.
+### Después de `require-bro@3`: jubilación
+
+Cuando `backend-plus@2.x` (la línea anterior) deje de mantenerse, `require-bro` se jubila. **El código de aplicación que importa `whenAllReady` desde `require-bro` migra a importarlo desde `when-all-ready` directamente** — mismo nombre, misma semántica, solo cambia el specifier. `when-all-ready` queda como paquete independiente, manteniéndose vivo más allá de `require-bro`.
 
 ## Orden de migración
 
 ### Fase 0 — Preparación (sin tocar librerías todavía)
 
-- [ ] Publicar `require-bro@1.x+1` con `whenAllReady` agregado.
+- [ ] Publicar `when-all-ready@1.x` con la implementación inicial (fallback a `load`).
+- [ ] Publicar `require-bro@2.x+1` con `whenAllReady` re-exportado desde `when-all-ready`.
 - [ ] Documentar `whenAllReady` como nuevo estándar para "código que corre cuando todo está listo".
 - [ ] Empezar a migrar handlers de `load` en sistemas cliente a `whenAllReady`. Regla incremental, una por PR. **No bloquea otras fases.**
 
@@ -215,12 +227,12 @@ Cobertura 95%+, sin frontend, sin dependencias entre ellas (a confirmar caso por
 
 Una librería por release. Mientras va saliendo esta fase, en el HTML de los sistemas cliente se acumulan los shims manuales de 3 líneas (uno por librería migrada).
 
-### Fase 3 — `require-bro@2`
+### Fase 3 — `require-bro@3`
 
-Cuando ya hay 2-3 librerías migradas y el patrón se repite, se justifica subir a `require-bro@2`:
+Cuando ya hay 2-3 librerías migradas y el patrón se repite, se justifica subir a `require-bro@3`:
 
 - Implementa `bootstrap()` con carga mixta UMD+ESM.
-- Reimplementa `whenAllReady` internamente (sin depender de `load`).
+- Actualiza la implementación de `when-all-ready` para usar el bootstrap (sin depender de `load`).
 - Los shims manuales del HTML se reemplazan por una lista en la configuración de `bootstrap()`.
 
 ### Fase 4 — Backend con peso (sin frontend todavía)
@@ -250,11 +262,11 @@ Integra todas las anteriores. Ya no depende de `require-bro` (o lo usa solo opci
 
 ### Fase 7 — Sistemas cliente
 
-`siper` y los demás migran a `backend-plus@3` cuando puedan. Los que no migran se quedan en `backend-plus@1.x` con `require-bro@2`, que sigue manteniéndose para fixes críticos.
+`siper` y los demás migran a `backend-plus@3` cuando puedan. Los que no migran se quedan en `backend-plus@2.x` con `require-bro@3`, que sigue manteniéndose para fixes críticos.
 
 ### Fase 8 — Jubilación de `require-bro`
 
-Cuando `backend-plus@1.x` deje de tener consumers activos, `require-bro` se archiva. `whenAllReady` se re-exporta desde una librería utilitaria con el mismo nombre, para que el código que lo use no se rompa.
+Cuando `backend-plus@2.x` deje de tener consumers activos, `require-bro` se archiva. Los consumers que importaban `whenAllReady` desde `require-bro` pasan a importarlo desde `when-all-ready` directamente.
 
 ## Checklist por librería
 
@@ -279,8 +291,7 @@ Para cada librería al migrarla:
 
 ## Decisiones pendientes
 
-- **Ventana de soporte de las líneas 1.x:** ¿se define un horizonte temporal (ej. 1 año de fixes críticos) o se mantienen indefinidamente mientras haya consumidores activos?
+- **Ventana de soporte de las líneas anteriores (0.x, 1.x, 2.x según corresponda):** ¿se define un horizonte temporal (ej. 1 año de fixes críticos) o se mantienen indefinidamente mientras haya consumidores activos?
 - **Grafo exacto de dependencias entre librerías propias:** revisar `package.json` de cada una para confirmar el orden topológico de la Fase 2 y Fase 4.
 - **Sistema piloto para frontend ESM** (cuando llegue Fase 5/6): conviene que no sea `siper` directamente, sino algo más chico para validar el cambio de loader antes de tocar el sistema principal.
 - **Detección automática UMD vs ESM en `bootstrap()`:** en `backend-plus` se puede recorrer la lista de archivos JS en deploy y marcar el tipo. Empezar simple (dos listas explícitas en el piloto), agregar detección automática cuando se justifique.
-- **Dónde vive `whenAllReady` después de la jubilación de `require-bro`:** definir la librería utilitaria que lo re-exportará. Candidata natural: una librería pequeña tipo `dom-lifecycle` o similar, o agregado a una existente como `best-globals` (con cuidado, porque `best-globals` se usa también en backend y `whenAllReady` es browser-only).
