@@ -14,6 +14,7 @@ var librerias = [
     {path: 'node_modules/big.js', js:'big.js'},
     {path: 'node_modules/json4all', js:'json4all.js'},
     {path: 'node_modules/type-store', js:'type-store.js'},
+    {path: 'server', js:'ejemplo.js'},
 ]
 
 class Server extends Server4Test{

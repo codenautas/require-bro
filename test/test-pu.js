@@ -36,13 +36,23 @@ describe("interactive ",function(){
         await page.goto('http://localhost:'+server.port+'/example');
         console.log('system ready');
     });
-    it("calculate", async function(){
+    it("calculate yes", async function(){
         this.timeout(5000);
         await page.waitForSelector('#calculate');
         await page.click('#calculate');
         await page.waitForSelector('#result');
         var obtained = await page.$eval('#result', div => div.textContent);
         discrepances.showAndThrow(obtained,'yes');
+        return 1;
+    });
+    it("get today", async function(){
+        this.timeout(5000);
+        await page.waitForSelector('#hoy');
+        await page.click('#hoy');
+        await page.waitForSelector('#resultHoy');
+        var obtained = await page.$eval('#resultHoy', div => div.textContent);
+        var hoy = new Date().toISOString().split('T')[0];
+        discrepances.showAndThrow(obtained,hoy);
         return 1;
     });
     after(async function () {
