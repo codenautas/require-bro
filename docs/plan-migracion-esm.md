@@ -317,3 +317,37 @@ Para cada librería al migrarla:
 - **Grafo exacto de dependencias entre librerías propias:** revisar `package.json` de cada una para confirmar el orden topológico de la Fase 2 y Fase 4.
 - **Sistema piloto para frontend ESM** (cuando llegue Fase 5/6): conviene que no sea `siper` directamente, sino algo más chico para validar el cambio de loader antes de tocar el sistema principal.
 - **Detección automática UMD vs ESM en `bootstrap()`:** en `backend-plus` se puede recorrer la lista de archivos JS en deploy y marcar el tipo. Empezar simple (dos listas explícitas en el piloto), agregar detección automática cuando se justifique.
+
+## Para la sesión de implementación con Claude Code
+
+### Alcance del primer paso
+
+En esta primera sesión se tocan **tres carpetas**:
+
+1. **`when-all-ready`** — paquete nuevo, hay que crearlo desde cero. Repositorio ya creado en `github.com/emilioplatzer/when-all-ready` (queda ahí por ahora; eventualmente se mueve a la organización principal).
+2. **`require-bro`** — sí se toca en esta etapa. Salto de versión a `3.0.0-rc.1`.
+3. **`best-globals`** — el piloto del salto a 3.x ESM-only.
+
+**`best-globals` no depende de `when-all-ready`** (es utilitario puro, sin código de browser). Las tres migraciones son técnicamente independientes; podés trabajarlas en paralelo o secuencial según convenga.
+
+### Convenciones técnicas
+
+- **TypeScript desde el día uno**, todo en TS (tanto `src/` como `test/`). Tomar como referencia la estructura de `cast-error`, que ya está full TS.
+- **Versionado inicial**:
+  - `when-all-ready`: `3.0.0-rc.1` desde el inicio (es parte fundamental del esfuerzo de migración, alineado con la nomenclatura 3.x del resto del ecosistema).
+  - `require-bro`: salto de `0.3.4` a `3.0.0-rc.1`.
+  - `best-globals`: salto de `2.x` a `3.0.0-rc.1`.
+- **Tests con Mocha**, cobertura con Coveralls (consistente con el resto del ecosistema).
+- **`tsconfig.json` base** para los tres paquetes: el template definido más arriba en este documento.
+
+### Sobre el carácter browser-only de `when-all-ready`
+
+`when-all-ready` solo tiene sentido en browser (depende de `window` y `document`). No se necesita un mecanismo especial para prevenir su uso en Node: las librerías que dependerán de `whenAllReady` son las que ya usan `window.addEventListener`, ninguna otra. Basta con dejarlo documentado en el README.
+
+### Workflow esperado de Claude Code
+
+- **Claude Code no hace commits**. Trabaja por pasos cortos y los muestra antes de avanzar al siguiente. Cualquier commit/push lo hace Emilio manualmente.
+- **Claude Code arma primero un plan**, lo muestra, y avanza paso a paso esperando confirmación.
+- **Permisos de comandos**:
+  - Permitidos: `npm install`, `npm test`, `npm run build`, y similares de lectura/ejecución local.
+  - **No permitidos**: `npm publish`, `git commit`, `git push`, ni nada que modifique repositorios remotos.
