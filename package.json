@@ -1,7 +1,7 @@
 {
   "name": "require-bro",
   "description": "require for browsers",
-  "version": "0.3.4",
+  "version": "3.0.0-beta.1",
   "files": [
     "lib"
   ],
@@ -21,7 +21,8 @@
     "istanbul": "~0.4.5",
     "mocha": "~11.7.5",
     "puppeteer": "~24.36.1",
-    "best-globals": "~2.0.7",
+    "best-globals": "^3.0.0-beta.1",
+    "when-all-ready": "^3.0.0-beta.1",
     "discrepances": "~0.2.9",
     "serve-content": "~1.0.2",
     "server4test": "~1.0.0",

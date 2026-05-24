@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --input-type=module)",
+      "Bash(awk '{print $5}')",
+      "Bash(xargs -r kill -9)",
+      "Bash(node -e ' *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

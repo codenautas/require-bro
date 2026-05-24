@@ -19,9 +19,9 @@
     root.globalModuleName = null;
 })(/*jshint -W040 */this, 'ejemplo', function() {
 
-var bg = require('best-globals');
-
-window.addEventListener('load', function(){
+var {whenAllReady} = require('when-all-ready');
+whenAllReady(function(){
+    var bg = require('best-globals');
     var div = document.createElement('div');
     var button = document.createElement('button');
     button.id = 'hoy';

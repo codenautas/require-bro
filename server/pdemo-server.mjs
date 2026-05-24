@@ -6,15 +6,18 @@ import path from 'path';
 
 console.log('Server4Test', Server4Test)
 
-var librerias = [
-    {path: 'lib', js:'require-bro.js', special:true},
-    {path: 'node_modules/best-globals', js:'best-globals.js'},
-    {path: 'node_modules/like-ar', js:'like-ar.js'},
-    {path: 'node_modules/js-to-html/lib', js:'js-to-html.js'},
-    {path: 'node_modules/big.js', js:'big.js'},
-    {path: 'node_modules/json4all', js:'json4all.js'},
-    {path: 'node_modules/type-store', js:'type-store.js'},
-    {path: 'server', js:'ejemplo.js'},
+var umdScripts = [
+    '/node_modules/like-ar/like-ar.js',
+    '/node_modules/js-to-html/lib/js-to-html.js',
+    '/node_modules/big.js/big.js',
+    '/node_modules/json4all/json4all.js',
+    '/node_modules/type-store/type-store.js',
+    '/server/ejemplo.js',
+]
+
+var esmModules = [
+    {name: 'best-globals',   url: '/node_modules/best-globals/best-globals.js'},
+    {name: 'when-all-ready', url: '/node_modules/when-all-ready/when-all-ready.js'},
 ]
 
 class Server extends Server4Test{
@@ -23,7 +26,11 @@ class Server extends Server4Test{
             path:'/example',
             html:`
 <!doctype html>
-${librerias.map(l=>`<script src='${l.path}/${l.js}'></script>`).join('\n')}
+<script src='/lib/require-bro.js'></script>
+${umdScripts.map(function(u){ return "<script src='"+u+"'></script>"; }).join('\n')}
+<script type="module">
+await window.requireBro.bootstrap(${JSON.stringify(esmModules)});
+</script>
 <h1>example</h1>
 <button id=calculate>calculate</button>
 <div id=layout></div>
