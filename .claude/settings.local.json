@@ -5,7 +5,8 @@
       "Bash(awk '{print $5}')",
       "Bash(xargs -r kill -9)",
       "Bash(node -e ' *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(xargs -r -I{} powershell -Command \"Stop-Process -Id {} -Force -ErrorAction SilentlyContinue\")"
     ]
   }
 }
