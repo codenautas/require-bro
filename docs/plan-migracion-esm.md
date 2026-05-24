@@ -86,29 +86,144 @@ Funciona porque `require-bro` ya tiene un registro `definedModules` que se puede
 
 ### Modelo
 
-`require-bro@3` mantiene la API actual (`define()`, `require()`, `definedModules`) y agrega una **fase de bootstrap asincrónica** que precarga ESM antes de que se ejecute cualquier código UMD legacy.
+`require-bro@3` mantiene la API actual (`define()`, `require()`, `definedModules`) y agrega dos cambios:
+
+1. **`define()` ya no ejecuta la factory inmediatamente.** Mientras todavía haya ESM cargándose, las factories quedan diferidas en una cola interna. Cuando los ESM terminan de cargarse, las factories se ejecutan en orden de registro (el mismo orden en que aparecen los `<script>` UMD en el HTML).
+2. **Nueva función `bootstrap(esmModules)`** que carga ESM en paralelo y, al terminar, dispara la ejecución de las factories diferidas.
+
+Los archivos UMD siguen cargándose **estáticamente vía `<script>`** en el HTML, como hoy. No hay carga dinámica de UMD. La única carga dinámica es la de ESM, que se hace con `import()` desde `bootstrap()`.
+
+### Uso desde el HTML
 
 ```html
-<script src='require-bro.js'></script>
+<script src='/lib/require-bro.js'></script>
+
+<!-- UMD legacy, cargados estáticamente como hoy -->
+<script src='/lib/backend-skins.js'></script>
+<script src='/lib/backend-plus-client.js'></script>
+<script src='/app/siper-main.js'></script>
+
+<!-- ESM cargados dinámicamente vía bootstrap -->
 <script type="module">
-  await window.requireBro.bootstrap({
-    modules: [
-      '/lib/best-globals/dist/index.js',   // ESM
-      '/lib/cast-error/dist/index.js',     // ESM
-      '/lib/backend-skins.js',              // UMD
-      '/lib/backend-plus-client.js',       // UMD
-      '/app/siper-main.js',                 // UMD del sistema
-    ]
-  });
+  await window.requireBro.bootstrap([
+    {name: 'best-globals', url: '/lib/best-globals/dist/index.js'},
+    {name: 'cast-error',   url: '/lib/cast-error/dist/index.js'},
+  ]);
+  // En este punto, ESM están registrados y todas las factories UMD diferidas se ejecutaron en orden.
 </script>
 ```
 
-### Lo que hace `bootstrap()` internamente
+### Flujo de ejecución
 
-1. Para cada módulo en la lista, detecta el formato (UMD o ESM) — esto se puede hacer leyendo las primeras líneas del archivo en el deploy y marcándolo, o con detección runtime simple.
-2. Para los ESM: `await import(url)`, asigna `definedModules[name] = mod`.
-3. Para los UMD: inserta `<script>` y espera su `onload`, lo cual dispara su `define()` interno que ya popula `definedModules`.
-4. Cuando todo está cargado, dispara los handlers de `whenAllReady` (ver abajo).
+1. Browser parsea el HTML y ejecuta los `<script>` UMD en orden. Cada uno llama a `define(...)`. Como `bootstrap()` todavía no se ejecutó, `esmLoaded` es `false`, y las factories quedan diferidas en `pendingFactories`.
+2. Browser llega al `<script type="module">` y ejecuta `bootstrap(esmModules)`.
+3. `bootstrap()` hace `Promise.all` de `import()` para cada ESM. Cada ESM cargado se registra en `definedModules[name]`.
+4. Cuando todos los ESM están cargados, `bootstrap()` setea `esmLoaded = true` y ejecuta las factories de `pendingFactories` **en orden de registro**.
+5. `bootstrap()` resuelve. En este punto, todo el grafo está armado: UMD y ESM registrados, factories ejecutadas.
+6. El evento `load` natural del browser se dispara cuando todo el HTML y sus recursos terminaron. `when-all-ready` ejecuta los handlers de aplicación.
+
+### Especificación de `bootstrap()`
+
+**Firma:**
+
+```typescript
+interface EsmModuleSpec {
+  name: string;   // nombre con el que se registra en definedModules
+  url: string;    // URL desde donde se hace import()
+}
+
+window.requireBro.bootstrap(esmModules: EsmModuleSpec[]): Promise<void>
+```
+
+**Por qué `name` es obligatorio en la spec del ESM:** para un UMD el `name` lo provee la propia llamada a `define(name, ...)` o se infiere del `currentScript.src`. Para un ESM nada de eso aplica — el archivo no se autoidentifica. El llamador (típicamente `backend-plus`) sabe el nombre con el que ese módulo debe registrarse en `definedModules`, y lo declara explícitamente.
+
+**Semántica:**
+
+- Los ESM se cargan en paralelo con `Promise.all(map(import))`.
+- Cada ESM cargado se asigna a `definedModules[name] = mod`. El `mod` es el namespace completo del módulo ESM (`{ exportA, exportB, ... }`), que para librerías que exportaban "objeto plano de funciones" tiene el mismo shape que tenía la versión UMD.
+- Cuando todos los ESM están cargados, se setea `esmLoaded = true` y se vacía `pendingFactories` ejecutando cada una en orden.
+- `bootstrap()` resuelve cuando se ejecutó la última factory diferida.
+
+**Errores:**
+
+- Si un `import()` falla (módulo no encontrado, error de sintaxis, etc.), `bootstrap()` rechaza. Es un error de infraestructura del frontend; no hay recuperación razonable.
+- Si una factory UMD lanza al ejecutarse, mantener el comportamiento actual de `require-bro` (propagar la excepción). No acumular silenciosamente como `when-all-ready` — `require-bro` es infraestructura crítica, `when-all-ready` es coordinación de inicializaciones de aplicación.
+
+### Implementación de referencia
+
+```javascript
+// require-bro@3 (esquemática, en pseudo-JS para guiar la implementación TS)
+
+var definedModules = (window.requireBro = window.requireBro || {}).definedModules = {};
+var pendingFactories = []; // [{name, deps, factory}]
+var esmLoaded = false;
+
+function define(/* (name?, deps?, factory) | (name?, plainObject) */) {
+  var parsed = parseDefineArgs(arguments); // mantiene la lógica actual de parseo UMD/AMD
+  var {name, deps, factory, plainObject} = parsed;
+
+  if (plainObject !== undefined) {
+    // Shortcut: define(name, {...}) sin factory — registración directa
+    definedModules[name] = plainObject;
+    return;
+  }
+
+  if (esmLoaded) {
+    // ESM ya cargados: comportamiento clásico, ejecutar factory enseguida
+    runFactory(name, deps, factory);
+  } else {
+    // ESM todavía pendientes: diferir la factory
+    pendingFactories.push({name, deps, factory});
+  }
+}
+
+function runFactory(name, deps, factory) {
+  var resolvedDeps = deps.map(function(dep) {
+    if (dep === 'require') return requireBro;
+    if (dep === 'exports') {
+      var exp = {};
+      definedModules[name] = exp;
+      return exp;
+    }
+    return requireBro(dep);
+  });
+  var result = factory.apply(null, resolvedDeps);
+  if (result !== undefined) {
+    definedModules[name] = result;
+  }
+}
+
+window.requireBro.bootstrap = async function(esmModules) {
+  await Promise.all(esmModules.map(async function(spec) {
+    var mod = await import(spec.url);
+    definedModules[spec.name] = mod;
+  }));
+
+  esmLoaded = true;
+
+  // Ejecutar factories diferidas en orden de registro (FIFO)
+  while (pendingFactories.length > 0) {
+    var entry = pendingFactories.shift();
+    runFactory(entry.name, entry.deps, entry.factory);
+  }
+};
+
+// require() sigue funcionando como hoy: busca en definedModules,
+// con el fallback de búsqueda por globals con conversión camelCase si no se encuentra.
+function requireBro(name) {
+  if (name in definedModules) {
+    return definedModules[name];
+  }
+  // ... fallback a búsqueda por globals (preservar lógica actual)
+}
+```
+
+**Notas para la implementación:**
+
+- El parseo de argumentos de `define()` (`parseDefineArgs`) ya está implementado en `require-bro@0.3.4`. Hay que portarlo a TypeScript preservando los tres shapes soportados (`define(name, deps, factory)`, `define(deps, factory)`, `define(factory)`, `define(name?, plainObject)`).
+- El fallback de búsqueda por globals con conversión camelCase también está en el código actual. Hay incertidumbre sobre si todavía se usa; en la duda, **preservarlo** en `require-bro@3` y revisarlo más adelante.
+- `require-plus.js` (archivo presente en `0.3.4`) **se elimina**. No se usa desde 2016.
+- El `polyfills-bro.js` actual hay que revisarlo: si sigue siendo necesario, se mantiene; si no, se elimina junto con el resto de la limpieza.
 
 ### El problema del evento `load` y `whenAllReady`
 
@@ -316,7 +431,6 @@ Para cada librería al migrarla:
 - **Ventana de soporte de las líneas anteriores (0.x, 1.x, 2.x según corresponda):** ¿se define un horizonte temporal (ej. 1 año de fixes críticos) o se mantienen indefinidamente mientras haya consumidores activos?
 - **Grafo exacto de dependencias entre librerías propias:** revisar `package.json` de cada una para confirmar el orden topológico de la Fase 2 y Fase 4.
 - **Sistema piloto para frontend ESM** (cuando llegue Fase 5/6): conviene que no sea `siper` directamente, sino algo más chico para validar el cambio de loader antes de tocar el sistema principal.
-- **Detección automática UMD vs ESM en `bootstrap()`:** en `backend-plus` se puede recorrer la lista de archivos JS en deploy y marcar el tipo. Empezar simple (dos listas explícitas en el piloto), agregar detección automática cuando se justifique.
 
 ## Para la sesión de implementación con Claude Code
 
