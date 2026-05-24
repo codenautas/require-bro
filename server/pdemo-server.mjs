@@ -28,10 +28,8 @@ class Server extends Server4Test{
             html:`
 <!doctype html>
 <script src='/lib/require-bro.js'></script>
+<script>window.requireBro.bootstrap(${JSON.stringify(esmModules)});</script>
 ${umdScripts.map(function(l){ return "<script src='/"+l.path+"/"+l.js+"'></script>"; }).join('\n')}
-<script type="module">
-await window.requireBro.bootstrap(${JSON.stringify(esmModules)});
-</script>
 <h1>example</h1>
 <button id=calculate>calculate</button>
 <div id=layout></div>
@@ -41,6 +39,26 @@ calculate.onclick=function(){
     layout.textContent=TypeStore.i18n.messages.en.boolean.true;
     layout.id='result';
 }
+});
+</script>
+</html>
+        `},{
+            path:'/example-umd-only',
+            html:`
+<!doctype html>
+<script src='/lib/require-bro.js'></script>
+<script src='/node_modules/like-ar/like-ar.js'></script>
+<h1>UMD-only example</h1>
+<button id=runtest>run</button>
+<div id=umdresult></div>
+<script>
+window.addEventListener('load',function(){
+    runtest.onclick=function(){
+        var likeAr = require('like-ar');
+        var doubled = likeAr({a:1,b:2,c:3}).map(function(v){return v*2}).plain();
+        umdresult.textContent = JSON.stringify(doubled);
+        umdresult.id='umdresult-ok';
+    }
 });
 </script>
 </html>
