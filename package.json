@@ -15,6 +15,10 @@
     }
   ],
   "main": "lib/require-bro.js",
+  "exports": {
+    ".": "./lib/require-bro.js",
+    "./html": "./lib/html.mjs"
+  },
   "dependencies": {},
   "devDependencies": {
     "express": "~5.2.1",

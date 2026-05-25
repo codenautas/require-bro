@@ -1,6 +1,7 @@
 "use strict";
 
 import {Server4Test}  from 'server4test';
+import {htmlScripts} from '../lib/html.mjs';
 import {fileURLToPath} from 'url';
 import path from 'path';
 
@@ -18,11 +19,10 @@ var librerias = [
     {path: 'server',                         js: 'ejemplo.js'},
 ]
 
+var umdOnlyLibrerias = librerias.filter(function(l){ return l.special || l.js === 'like-ar.js'; });
+
 class Server extends Server4Test{
     directServices(){
-        var umdScripts = librerias.filter(function(l){ return !l.special && l.type !== 'module'; });
-        var esmModules = librerias.filter(function(l){ return l.type === 'module'; })
-            .map(function(l){ return {name: l.name, url: '/'+l.path+'/'+l.js}; });
         return super.directServices().concat([{
             path:'/favicon.ico',
             method:'get',
@@ -31,9 +31,7 @@ class Server extends Server4Test{
             path:'/example',
             html:`
 <!doctype html>
-<script src='/lib/require-bro.js'></script>
-<script>window.requireBro.bootstrap(${JSON.stringify(esmModules)});</script>
-${umdScripts.map(function(l){ return "<script src='/"+l.path+"/"+l.js+"'></script>"; }).join('\n')}
+${htmlScripts(librerias)}
 <h1>example</h1>
 <button id=calculate>calculate</button>
 <div id=layout></div>
@@ -50,8 +48,7 @@ calculate.onclick=function(){
             path:'/example-umd-only',
             html:`
 <!doctype html>
-<script src='/lib/require-bro.js'></script>
-<script src='/node_modules/like-ar/like-ar.js'></script>
+${htmlScripts(umdOnlyLibrerias)}
 <h1>UMD-only example</h1>
 <button id=runtest>run</button>
 <div id=umdresult></div>
