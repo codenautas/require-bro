@@ -27,8 +27,16 @@ también disponible en:
 [![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](README.md)
 
 <!--lang:es-->
+## Migración a ESM
+
+Si tu proyecto sirve scripts UMD al browser y querés consumir librerías ESM gradualmente, ver [MigrandoHaciaESM.md](MigrandoHaciaESM.md): recetas concretas para librerías UMD, scripts inline de HTML, y emisión automática desde el server vía `htmlScripts`.
+
 ## Uso
 <!--lang:en--]
+## Migrating to ESM
+
+If your project serves UMD scripts to the browser and you want to consume ESM libraries gradually, see [MigratingToESM.md](MigratingToESM.md): concrete recipes for UMD libraries, inline HTML scripts, and automatic emission from the server via `htmlScripts`.
+
 ## Use
 [!--lang:*-->
 

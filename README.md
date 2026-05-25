@@ -19,6 +19,10 @@ language: ![English](https://raw.githubusercontent.com/codenautas/multilang/mast
 also available in:
 [![Spanish](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)](LEEME.md)
 
+## Migrating to ESM
+
+If your project serves UMD scripts to the browser and you want to consume ESM libraries gradually, see [MigratingToESM.md](MigratingToESM.md): concrete recipes for UMD libraries, inline HTML scripts, and automatic emission from the server via `htmlScripts`.
+
 ## Use
 
 ```js
