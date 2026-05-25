@@ -24,6 +24,10 @@ class Server extends Server4Test{
         var esmModules = librerias.filter(function(l){ return l.type === 'module'; })
             .map(function(l){ return {name: l.name, url: '/'+l.path+'/'+l.js}; });
         return super.directServices().concat([{
+            path:'/favicon.ico',
+            method:'get',
+            middleware: function(req, res){ res.status(204).end(); }
+        },{
             path:'/example',
             html:`
 <!doctype html>

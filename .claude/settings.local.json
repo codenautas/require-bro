@@ -6,7 +6,9 @@
       "Bash(xargs -r kill -9)",
       "Bash(node -e ' *)",
       "Bash(npm install *)",
-      "Bash(xargs -r -I{} powershell -Command \"Stop-Process -Id {} -Force -ErrorAction SilentlyContinue\")"
+      "Bash(xargs -r -I{} powershell -Command \"Stop-Process -Id {} -Force -ErrorAction SilentlyContinue\")",
+      "Bash(npm run *)",
+      "Bash(GITHUB_ACTIONS=1 npm run test-ui)"
     ]
   }
 }
