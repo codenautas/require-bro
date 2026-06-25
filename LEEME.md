@@ -12,13 +12,11 @@ $ npm install require-bro
 ```
 
 <!-- cucardas -->
-![extending](https://img.shields.io/badge/stability-extending-orange.svg)
 [![npm-version](https://img.shields.io/npm/v/require-bro.svg)](https://npmjs.org/package/require-bro)
 [![downloads](https://img.shields.io/npm/dm/require-bro.svg)](https://npmjs.org/package/require-bro)
-[![build](https://img.shields.io/travis/codenautas/require-bro/master.svg)](https://travis-ci.org/codenautas/require-bro)
-[![build](https://github.com/codenautas/require-bro/actions/workflows/node.js.yml/badge.svg)](https://github.com/codenautas/require-bro/actions/workflows/node.js.yml)
-[![climate](https://img.shields.io/codeclimate/github/codenautas/require-bro.svg)](https://codeclimate.com/github/codenautas/require-bro)
-[![dependencies](https://img.shields.io/david/codenautas/require-bro.svg)](https://david-dm.org/codenautas/require-bro)
+[![build](https://github.com/codenautas/require-bro/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/codenautas/require-bro/actions/workflows/build-and-test.yml)
+[![security](https://socket.dev/api/badge/npm/package/require-bro)](https://socket.dev/npm/package/require-bro)
+[![qa-control](https://github.com/codenautas/require-bro/actions/workflows/qa-control.yml/badge.svg)](https://github.com/codenautas/require-bro/actions/workflows/qa-control.yml)
 
 <!--multilang buttons-->
 

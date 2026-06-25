@@ -15,17 +15,23 @@
     }
   ],
   "main": "lib/require-bro.js",
+  "overrides": {
+    "diff": ">=8.0.2",
+    "serialize-javascript": ">=7.0.0",
+    "uuid": ">=14.0.0"
+  },
   "dependencies": {},
   "devDependencies": {
     "express": "~5.2.1",
     "istanbul": "~0.4.5",
-    "mocha": "~11.7.5",
-    "puppeteer": "~24.36.1",
-    "best-globals": "~2.0.7",
-    "discrepances": "~0.2.9",
-    "serve-content": "~1.0.2",
+    "mocha": "~11.7.6",
+    "puppeteer": "~25.2.1",
+    "best-globals": "~2.2.0",
+    "discrepances": "~0.2.14",
+    "qa-control": "^0.6.16",
+    "serve-content": "~1.0.4",
     "server4test": "~1.0.0",
-    "type-store": "~0.4.5"
+    "type-store": "~0.4.12"
   },
   "engines": {
     "node": ">= 14"
@@ -38,10 +44,12 @@
     "start": "node server/pdemo-server.mjs"
   },
   "qa-control": {
+    "profile": "minimum",
     "package-version": "0.3.0",
     "coverage": 0,
     "run-in": "client",
     "stability": "extending",
-    "type": "lib"
+    "type": "lib",
+    "gha": "all"
   }
 }
