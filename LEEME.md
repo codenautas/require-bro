@@ -52,7 +52,7 @@ MoreMath.intRandom = function (min, max){
 ```js
 // file other.js
 
-var MoreMath = require('more-math'); 
+var MoreMath = require('more-math');
 
 console.log(MoreMath.real_roots_quadratic_equation(1,-2,1));
 console.log('dice', MoreMath.intRandom(1, 6));
@@ -81,8 +81,8 @@ y debe definir la variable global con el mismo nombre de módulo (en camelCase q
 
 Searchs in the global object `window` a variable with the same name but in camelCase (or CamelCase)
 
-The required module must be included in previous `<scripts>` 
-and must have define a global variable with the same name. 
+The required module must be included in previous `<scripts>`
+and must have define a global variable with the same name.
 
 [!--lang:es-->
 
@@ -113,4 +113,3 @@ NPM version |Device                  |OS             |nav
 [!--lang:*-->
 
 [MIT](LICENSE)
-

@@ -4,6 +4,8 @@ var {serverDemo} = require('../server/pdemo-server.mjs');
 
 const puppeteer = require('puppeteer');
 
+var {date} = require('best-globals')
+
 const MiniTools = require('mini-tools');
 const discrepances = require('discrepances');
 
@@ -29,8 +31,8 @@ describe("interactive ",function(){
         await server.start();
         browser = await puppeteer.launch({headless, slowMo, args});
         page = await browser.newPage();
-        page.on('console', msg => { 
-            console.log('console.'+msg.type(), msg.text()) 
+        page.on('console', msg => {
+            console.log('console.'+msg.type(), msg.text())
         });
         await page.setViewport({width:1360, height:768});
         await page.goto('http://localhost:'+server.port+'/example');
@@ -51,7 +53,7 @@ describe("interactive ",function(){
         await page.click('#hoy');
         await page.waitForSelector('#resultHoy');
         var obtained = await page.$eval('#resultHoy', div => div.textContent);
-        var hoy = new Date().toISOString().split('T')[0];
+        var hoy = date.today().toYmd();
         discrepances.showAndThrow(obtained,hoy);
         return 1;
     });
