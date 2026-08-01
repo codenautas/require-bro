@@ -19,7 +19,7 @@
     root.globalModuleName = null;
 })(/*jshint -W040 */this, 'ejemplo', function() {
 
-var bg = require('best-globals');
+var bg = require('best-globals'); /* eslint-disable-line global-require */
 
 window.addEventListener('load', function(){
     var div = document.createElement('div');
