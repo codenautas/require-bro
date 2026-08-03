@@ -8,6 +8,7 @@ var {date} = require('best-globals')
 
 const MiniTools = require('mini-tools');
 const discrepances = require('discrepances');
+const { startCoverage, stopAndSaveCoverage } = require('../tools/browser-coverage');
 
 const config = {
     test:{
@@ -35,6 +36,7 @@ describe("interactive ",function(){
             console.log('console.'+msg.type(), msg.text())
         });
         await page.setViewport({width:1360, height:768});
+        await startCoverage(page);
         await page.goto('http://localhost:'+server.port+'/example');
         console.log('system ready');
     });
@@ -62,6 +64,7 @@ describe("interactive ",function(){
         //await page.waitFor(process.env.TRAVIS?10:1000);
         //reemplazo page.waitFor(...) ya no existe por:
         await new Promise(r => setTimeout(r, 200));
+        await stopAndSaveCoverage(page, "example");
         await browser.close();
         await server.closeServer();
     });

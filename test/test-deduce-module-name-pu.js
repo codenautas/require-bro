@@ -3,6 +3,7 @@
 const { Server4Test } = require("server4test");
 const puppeteer = require("puppeteer");
 const discrepances = require("discrepances");
+const { startCoverage, stopAndSaveCoverage } = require("../tools/browser-coverage");
 
 const config = {
     test:{
@@ -75,12 +76,14 @@ describe("deduceModuleName (desde lib/require-bro.js)", function () {
     browser = await puppeteer.launch({ headless, slowMo, args });
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
+    await startCoverage(page);
     await page.goto(`http://localhost:${server.port}/deduce`);
     await page.waitForSelector("#ready");
   });
 
   after(async function () {
     this.timeout(15000);
+    if (page) await stopAndSaveCoverage(page, "deduce");
     if (page) await page.close();
     if (browser) await browser.close();
     if (server) await server.closeServer();
